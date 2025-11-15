@@ -1,0 +1,54 @@
+[
+  {
+    "id": "book-001",
+    "userId": "user-001",
+    "serviceId": "elec-001",
+    "serviceName": "Electrical Installation",
+    "date": "2024-06-15",
+    "time": "10:00 AM",
+    "status": "confirmed",
+    "address": "123 Main Street, Nanded",
+    "phone": "+91 9876543210",
+    "notes": "Please call before arrival",
+    "createdAt": "2024-06-10T10:00:00Z"
+  },
+  {
+    "id": "book-002",
+    "userId": "user-002",
+    "serviceId": "ac-001",
+    "serviceName": "AC Installation",
+    "date": "2024-06-18",
+    "time": "2:00 PM",
+    "status": "pending",
+    "address": "456 Park Avenue, Nanded",
+    "phone": "+91 9876543211",
+    "notes": "Second floor apartment",
+    "createdAt": "2024-06-12T10:00:00Z"
+  },
+  {
+    "id": "book-003",
+    "userId": "user-003",
+    "serviceId": "elec-002",
+    "serviceName": "Electrical Repair",
+    "date": "2024-06-20",
+    "time": "11:00 AM",
+    "status": "completed",
+    "address": "789 Market Road, Nanded",
+    "phone": "+91 9876543212",
+    "notes": "Urgent repair needed",
+    "createdAt": "2024-06-14T10:00:00Z"
+  },
+  {
+    "id": "book-004",
+    "userId": "user-001",
+    "serviceId": "ac-002",
+    "serviceName": "AC Repair & Maintenance",
+    "date": "2024-06-22",
+    "time": "3:00 PM",
+    "status": "pending",
+    "address": "123 Main Street, Nanded",
+    "phone": "+91 9876543210",
+    "createdAt": "2024-06-15T10:00:00Z"
+  }
+]
+

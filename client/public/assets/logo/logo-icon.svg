@@ -1,0 +1,15 @@
+<!-- Fixora Logo - Icon Only -->
+<!-- TODO: Replace with final logo files from designer -->
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rounded shape background -->
+  <rect width="40" height="40" rx="10" fill="#2563EB"/>
+  
+  <!-- Electric bolt motif (subtle) -->
+  <path d="M20 8L16 18H22L20 32" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/>
+  
+  <!-- Cooling wave element (subtle) -->
+  <path d="M8 28C10 26 12 28 14 26C16 28 18 26 20 28" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.3"/>
+  
+  <!-- Bold 'F' letter -->
+  <path d="M14 12H26M14 12V20M14 12V28" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,139 @@
+[
+  {
+    "id": "elec-001",
+    "title": "Electrical Installation",
+    "description": "Professional electrical installation services for homes and offices. Expert electricians ensure safe and efficient wiring.",
+    "category": "electrician",
+    "price": 1500,
+    "duration": "2-3 hours",
+    "image": "https://images.unsplash.com/photo-1621905251918-48118d2a7d86?w=800",
+    "features": [
+      "Expert electricians",
+      "Quality materials",
+      "Safety certified",
+      "Warranty included"
+    ],
+    "rating": 4.8,
+    "reviews": 124
+  },
+  {
+    "id": "elec-002",
+    "title": "Electrical Repair",
+    "description": "Quick and reliable electrical repair services. We fix all types of electrical issues promptly.",
+    "category": "electrician",
+    "price": 800,
+    "duration": "1-2 hours",
+    "image": "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=800",
+    "features": [
+      "24/7 availability",
+      "Same-day service",
+      "Diagnostic included",
+      "Transparent pricing"
+    ],
+    "rating": 4.7,
+    "reviews": 98
+  },
+  {
+    "id": "elec-003",
+    "title": "Wiring & Rewiring",
+    "description": "Complete wiring and rewiring solutions for residential and commercial properties.",
+    "category": "electrician",
+    "price": 2500,
+    "duration": "4-6 hours",
+    "image": "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=800",
+    "features": [
+      "Modern wiring solutions",
+      "Code compliant",
+      "Energy efficient",
+      "Free consultation"
+    ],
+    "rating": 4.9,
+    "reviews": 156
+  },
+  {
+    "id": "elec-004",
+    "title": "Panel Upgrade",
+    "description": "Electrical panel upgrade services to meet modern power requirements safely.",
+    "category": "electrician",
+    "price": 3500,
+    "duration": "3-4 hours",
+    "image": "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=800",
+    "features": [
+      "Certified panels",
+      "Safety inspection",
+      "Load calculation",
+      "Professional installation"
+    ],
+    "rating": 4.8,
+    "reviews": 87
+  },
+  {
+    "id": "ac-001",
+    "title": "AC Installation",
+    "description": "Professional AC installation services for all brands. Expert technicians ensure optimal cooling.",
+    "category": "ac",
+    "price": 2000,
+    "duration": "2-3 hours",
+    "image": "https://images.unsplash.com/photo-1621905252472-8c4e3c5b5b5b?w=800",
+    "features": [
+      "All brands supported",
+      "Proper sizing",
+      "Warranty included",
+      "Free consultation"
+    ],
+    "rating": 4.9,
+    "reviews": 203
+  },
+  {
+    "id": "ac-002",
+    "title": "AC Repair & Maintenance",
+    "description": "Comprehensive AC repair and maintenance services to keep your cooling system running efficiently.",
+    "category": "ac",
+    "price": 1200,
+    "duration": "1-2 hours",
+    "image": "https://images.unsplash.com/photo-1621905252472-8c4e3c5b5b5b?w=800",
+    "features": [
+      "Expert diagnosis",
+      "Genuine parts",
+      "Same-day service",
+      "Maintenance tips"
+    ],
+    "rating": 4.7,
+    "reviews": 178
+  },
+  {
+    "id": "ac-003",
+    "title": "AC Gas Filling",
+    "description": "Professional AC gas refilling services with proper leak detection and testing.",
+    "category": "ac",
+    "price": 1500,
+    "duration": "1 hour",
+    "image": "https://images.unsplash.com/photo-1621905252472-8c4e3c5b5b5b?w=800",
+    "features": [
+      "Quality refrigerant",
+      "Leak detection",
+      "Performance testing",
+      "Warranty on service"
+    ],
+    "rating": 4.6,
+    "reviews": 145
+  },
+  {
+    "id": "ac-004",
+    "title": "AC Deep Cleaning",
+    "description": "Thorough AC deep cleaning service to improve efficiency and air quality.",
+    "category": "ac",
+    "price": 1000,
+    "duration": "2 hours",
+    "image": "https://images.unsplash.com/photo-1621905252472-8c4e3c5b5b5b?w=800",
+    "features": [
+      "Complete cleaning",
+      "Filter replacement",
+      "Sanitization",
+      "Efficiency boost"
+    ],
+    "rating": 4.8,
+    "reviews": 192
+  }
+]
+

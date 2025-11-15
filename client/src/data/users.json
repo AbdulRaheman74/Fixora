@@ -1,0 +1,35 @@
+[
+  {
+    "id": "user-001",
+    "name": "Rajesh Kumar",
+    "email": "rajesh@example.com",
+    "phone": "+91 9876543210",
+    "role": "user",
+    "createdAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "user-002",
+    "name": "Priya Sharma",
+    "email": "priya@example.com",
+    "phone": "+91 9876543211",
+    "role": "user",
+    "createdAt": "2024-02-20T10:00:00Z"
+  },
+  {
+    "id": "user-003",
+    "name": "Amit Patel",
+    "email": "amit@example.com",
+    "phone": "+91 9876543212",
+    "role": "user",
+    "createdAt": "2024-03-10T10:00:00Z"
+  },
+  {
+    "id": "admin-001",
+    "name": "Admin User",
+    "email": "admin@servicebooking.com",
+    "phone": "+91 9876543299",
+    "role": "admin",
+    "createdAt": "2024-01-01T10:00:00Z"
+  }
+]
+

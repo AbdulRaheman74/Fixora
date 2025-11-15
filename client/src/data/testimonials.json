@@ -1,0 +1,51 @@
+[
+  {
+    "id": "test-001",
+    "name": "Rajesh Kumar",
+    "rating": 5,
+    "comment": "Excellent service! The electrician was professional and fixed all the wiring issues in my home. Highly recommended!",
+    "service": "Electrical Installation",
+    "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150"
+  },
+  {
+    "id": "test-002",
+    "name": "Priya Sharma",
+    "rating": 5,
+    "comment": "Great AC installation service. The team was punctual and did a clean job. My home is now cool and comfortable!",
+    "service": "AC Installation",
+    "image": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"
+  },
+  {
+    "id": "test-003",
+    "name": "Amit Patel",
+    "rating": 4,
+    "comment": "Quick response and professional AC repair service. The technician was knowledgeable and fixed the issue in no time.",
+    "service": "AC Repair",
+    "image": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150"
+  },
+  {
+    "id": "test-004",
+    "name": "Sunita Deshmukh",
+    "rating": 5,
+    "comment": "Outstanding electrical repair service. They arrived on time and completed the work efficiently. Very satisfied!",
+    "service": "Electrical Repair",
+    "image": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150"
+  },
+  {
+    "id": "test-005",
+    "name": "Vikram Singh",
+    "rating": 4,
+    "comment": "Professional AC maintenance service. The deep cleaning improved the cooling significantly. Worth every rupee!",
+    "service": "AC Deep Cleaning",
+    "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150"
+  },
+  {
+    "id": "test-006",
+    "name": "Meera Joshi",
+    "rating": 5,
+    "comment": "Best electrician service in Nanded! They upgraded my electrical panel and everything works perfectly now.",
+    "service": "Panel Upgrade",
+    "image": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150"
+  }
+]
+

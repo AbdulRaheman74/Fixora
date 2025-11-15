@@ -1,0 +1,9 @@
+<!-- Fixora Favicon -->
+<!-- TODO: Replace with final favicon files from designer -->
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="32" height="32" rx="8" fill="#2563EB"/>
+  <path d="M16 6L13 14H19L16 26" stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/>
+  <path d="M6 22C7.5 21 9 22 10.5 21C12 22 13.5 21 15 22" stroke="white" stroke-width="1" stroke-linecap="round" opacity="0.3"/>
+  <path d="M11 10H21M11 10V16M11 10V22" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+
