@@ -1,10 +1,13 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, HTMLMotionProps } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+type ButtonHTMLAttributes = React.ButtonHTMLAttributes<HTMLButtonElement>;
+type MotionButtonProps = HTMLMotionProps<'button'>;
+
+interface ButtonProps extends Omit<ButtonHTMLAttributes, 'onDrag' | 'onDragEnd' | 'onDragStart'> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
@@ -41,7 +44,7 @@ export default function Button({
       whileTap={{ scale: disabled || isLoading ? 1 : 0.98 }}
       className={cn(baseStyles, variants[variant], sizes[size], className)}
       disabled={disabled || isLoading}
-      {...props}
+      {...(props as MotionButtonProps)}
     >
       {isLoading ? (
         <span className="flex items-center gap-2">
