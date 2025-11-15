@@ -95,13 +95,13 @@ export default function AboutPage() {
                   has grown into one of the most trusted service providers in the region.
                 </p>
                 <p className="mb-4">
-                  Over the years, we've built a team of certified technicians who are not just skilled professionals
+                  Over the years, we&apos;ve built a team of certified technicians who are not just skilled professionals
                   but also committed to delivering exceptional customer service. We understand that electrical and
-                  AC issues can be stressful, and we're here to make the process as smooth and hassle-free as possible.
+                  AC issues can be stressful, and we&apos;re here to make the process as smooth and hassle-free as possible.
                 </p>
                 <p>
                   Our commitment to quality, transparency, and customer satisfaction has earned us the trust of
-                  thousands of customers. We're proud to be your go-to service provider for all your home service needs.
+                  thousands of customers. We&apos;re proud to be your go-to service provider for all your home service needs.
                 </p>
               </div>
             </motion.div>

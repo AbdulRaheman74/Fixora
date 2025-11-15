@@ -49,7 +49,7 @@ export default function ContactPage() {
             >
               <h1 className="text-5xl font-bold mb-4">Contact Us</h1>
               <p className="text-xl text-primary-100">
-                Get in touch with us. We're here to help!
+                Get in touch with us. We&apos;re here to help!
               </p>
             </motion.div>
           </div>

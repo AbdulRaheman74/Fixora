@@ -149,7 +149,7 @@ export default function ServiceDetailsPage() {
               </div>
 
               <div className="bg-white rounded-xl p-6 shadow-md">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">What's Included</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">What&apos;s Included</h2>
                 <ul className="space-y-3">
                   {service.features.map((feature, index) => (
                     <motion.li

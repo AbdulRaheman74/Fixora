@@ -165,7 +165,7 @@ export default function ProfilePage() {
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <p className="text-gray-600 mb-4">You don't have any bookings yet.</p>
+                    <p className="text-gray-600 mb-4">You don&apos;t have any bookings yet.</p>
                     <a
                       href="/services"
                       className="text-primary-600 hover:text-primary-700 font-semibold"
