@@ -5,9 +5,12 @@ import axios from 'axios';
  * Simple configuration file
  */
 
-// Base URL - localhost par API chal rahi hai
+// Base URL - Relative URLs use karo (same domain pe API routes hain)
+// Development: http://localhost:3000
+// Production: https://fixora-red.vercel.app
+// Empty baseURL = current domain use hoga automatically
 const apiClient = axios.create({
-  baseURL: 'http://localhost:3000', // API ka address
+  baseURL: '', // Empty = relative URLs (current domain use hoga)
   headers: {
     'Content-Type': 'application/json',
   },
