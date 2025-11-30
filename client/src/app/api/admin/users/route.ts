@@ -9,6 +9,10 @@ import { requireAdmin } from "@/lib/auth/middleware";
  * GET /api/admin/users
  * Purpose: Sabhi users ki list dikhana (Admin only)
  */
+
+// IMPORTANT: Yeh route dynamic hai (build time par pre-render nahi hoga)
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     // STEP 1: Check karo user admin hai ya nahi

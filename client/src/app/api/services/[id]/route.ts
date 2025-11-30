@@ -10,6 +10,9 @@ import { requireAdmin } from "@/lib/auth/middleware";
  * DELETE /api/services/[id] - Service delete karna (Admin only)
  */
 
+// IMPORTANT: Yeh route dynamic hai (build time par pre-render nahi hoga)
+export const dynamic = 'force-dynamic';
+
 // GET: Ek Service
 export async function GET(
   req: NextRequest,

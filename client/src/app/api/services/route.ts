@@ -9,6 +9,9 @@ import { requireAdmin } from "@/lib/auth/middleware";
  * POST /api/services - Naya service banana (Admin only)
  */
 
+// IMPORTANT: Yeh route dynamic hai (build time par pre-render nahi hoga)
+export const dynamic = 'force-dynamic';
+
 // GET: Sabhi Services
 export async function GET(req: NextRequest) {
   try {

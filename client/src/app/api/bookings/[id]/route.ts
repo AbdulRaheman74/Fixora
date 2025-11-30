@@ -12,6 +12,9 @@ import { sendBookingStatusUpdateEmail } from "@/lib/email/email";
  * DELETE /api/bookings/[id] - Booking cancel karna
  */
 
+// IMPORTANT: Yeh route dynamic hai (build time par pre-render nahi hoga)
+export const dynamic = 'force-dynamic';
+
 // GET: Ek Booking
 export async function GET(
   req: NextRequest,

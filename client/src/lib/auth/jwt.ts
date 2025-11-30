@@ -8,9 +8,6 @@ import jwt from 'jsonwebtoken';
 // Secret key (environment variable se lo)
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this';
 
-// Token kitne din tak valid rahega
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
-
 /**
  * Function: Token Create Karo
  * Jab user login/register karta hai, to uska token banaya jata hai
@@ -23,9 +20,9 @@ export function generateToken(userId: string, email: string, role: string): stri
     role: role,
   };
 
-  // JWT library se token banao
+  // JWT library se token banao - directly options pass karo (simple approach)
   const token = jwt.sign(tokenData, JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN, // 7 din tak valid
+    expiresIn: '7d', // 7 din tak valid
   });
 
   return token;

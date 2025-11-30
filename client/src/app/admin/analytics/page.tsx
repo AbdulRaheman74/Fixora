@@ -34,6 +34,7 @@ export default function AnalyticsPage() {
   const { bookings } = useBooking();
   const [monthlyRevenue, setMonthlyRevenue] = useState<{ month: string; revenue: number; bookings?: number }[]>([]);
   const [servicePopularity, setServicePopularity] = useState<{ name: string; bookings: number; revenue: number }[]>([]);
+  const [services, setServices] = useState<{ id: string; category: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   /**
@@ -46,12 +47,15 @@ export default function AnalyticsPage() {
     const fetchAnalytics = async () => {
       setIsLoading(true);
       try {
-        // STEP 1: API call karo - GET /api/admin/analytics
-        const response = await apiClient.get('/api/admin/analytics');
+        // STEP 1: Analytics API call karo
+        const analyticsResponse = await apiClient.get('/api/admin/analytics');
         
-        // STEP 2: Agar success hai, to analytics data ko state mein save karo
-        if (response.data.success && response.data.analytics) {
-          const analytics = response.data.analytics;
+        // STEP 2: Services fetch karo (category ke liye)
+        const servicesResponse = await apiClient.get('/api/services');
+        
+        // STEP 3: Analytics data ko state mein save karo
+        if (analyticsResponse.data.success && analyticsResponse.data.analytics) {
+          const analytics = analyticsResponse.data.analytics;
           
           // Monthly revenue format karo
           const revenueData = analytics.monthlyRevenue || [];
@@ -68,11 +72,21 @@ export default function AnalyticsPage() {
             revenue: 0, // Revenue calculation abhi nahi hai API mein
           })));
         }
+
+        // STEP 4: Services data save karo (category distribution ke liye)
+        if (servicesResponse.data.success && servicesResponse.data.services) {
+          const servicesList = servicesResponse.data.services.map((service: any) => ({
+            id: service.id,
+            category: service.category || 'unknown',
+          }));
+          setServices(servicesList);
+        }
       } catch (error: any) {
         console.error('Fetch Analytics Error:', error);
         // Error case mein empty arrays
         setMonthlyRevenue([]);
         setServicePopularity([]);
+        setServices([]);
       } finally {
         setIsLoading(false);
       }
@@ -122,31 +136,29 @@ export default function AnalyticsPage() {
     { name: 'Cancelled', value: bookings.filter(b => b.status === 'cancelled').length },
   ];
 
-  // Category distribution
+  // Category distribution - Services data se calculate karo
   const categoryData = [
     {
       name: 'Electrician',
       bookings: bookings.filter(b => {
-        const service = servicesData.find(s => s.id === b.serviceId);
+        const service = services.find(s => s.id === b.serviceId);
         return service?.category === 'electrician';
       }).length,
     },
     {
       name: 'AC Services',
       bookings: bookings.filter(b => {
-        const service = servicesData.find(s => s.id === b.serviceId);
+        const service = services.find(s => s.id === b.serviceId);
         return service?.category === 'ac';
       }).length,
     },
   ];
 
-  // Revenue by service
-  const revenueByService = servicesData.map(service => ({
-    name: service.title.length > 15 ? service.title.substring(0, 15) + '...' : service.title,
-    revenue: bookings
-      .filter(b => b.serviceId === service.id && (b.status === 'completed' || b.status === 'confirmed'))
-      .reduce((sum) => sum + service.price, 0),
-  })).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+  // Revenue by service - Calculated from service popularity
+  const revenueByService = calculatedServicePopularity.slice(0, 5).map(service => ({
+    name: service.name.length > 15 ? service.name.substring(0, 15) + '...' : service.name,
+    revenue: service.revenue || 0,
+  }));
 
   return (
     <>

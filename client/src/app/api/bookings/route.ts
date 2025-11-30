@@ -12,6 +12,9 @@ import { sendBookingConfirmationEmail } from "@/lib/email/email";
  * POST /api/bookings - Naya booking banana
  */
 
+// IMPORTANT: Yeh route dynamic hai (build time par pre-render nahi hoga)
+export const dynamic = 'force-dynamic';
+
 // GET: User Ki Bookings
 export async function GET(req: NextRequest) {
   try {

@@ -8,6 +8,10 @@ import { requireAuth } from "@/lib/auth/middleware";
  * GET /api/auth/me
  * Purpose: Currently logged in user ki info dikhana
  */
+
+// IMPORTANT: Yeh route dynamic hai (build time par pre-render nahi hoga)
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     // STEP 1: Check karo user logged in hai ya nahi

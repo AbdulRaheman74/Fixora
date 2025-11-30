@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Star, Clock, IndianRupee } from 'lucide-react';
 import { Service } from '@/types';
 import { formatCurrency } from '@/lib/utils';
@@ -27,10 +28,12 @@ export default function ServiceCard({ service, index = 0 }: ServiceCardProps) {
     >
       {/* Image */}
       <div className="relative h-48 w-full overflow-hidden">
-        <img
+        <Image
           src={service.image}
           alt={service.title}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+          fill
+          className="object-cover group-hover:scale-110 transition-transform duration-300"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
         <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1">
           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />

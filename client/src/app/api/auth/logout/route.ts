@@ -5,6 +5,10 @@ import { NextRequest, NextResponse } from "next/server";
  * POST /api/auth/logout
  * Purpose: User ko logout karna (token delete karna)
  */
+
+// IMPORTANT: Yeh route dynamic hai (cookies modify karne ke liye)
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   try {
     // STEP 1: Success response banao

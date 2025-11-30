@@ -9,6 +9,10 @@ import { generateToken } from "@/lib/auth/jwt";
  * POST /api/auth/login
  * Purpose: User ko login karna
  */
+
+// IMPORTANT: Yeh route dynamic hai (cookies set karne ke liye)
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   try {
     // STEP 1: Frontend se email aur password lo
