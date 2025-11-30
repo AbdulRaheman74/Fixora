@@ -10,6 +10,9 @@ import { Service } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import apiClient from '@/lib/api/axios';
 
+// IMPORTANT: Force dynamic rendering (no static generation)
+export const dynamic = 'force-dynamic';
+
 export default function ManageServicesPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);

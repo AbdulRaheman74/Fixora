@@ -16,6 +16,9 @@ import { Service, Testimonial } from '@/types';
 import { getWhatsAppLink } from '@/lib/utils';
 import apiClient from '@/lib/api/axios';
 
+// IMPORTANT: Force dynamic rendering (no static generation)
+export const dynamic = 'force-dynamic';
+
 export default function HomePage() {
   const { isLoading: authLoading } = useAuth();
   const [services, setServices] = useState<Service[]>([]);

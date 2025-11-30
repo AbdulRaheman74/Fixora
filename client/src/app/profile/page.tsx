@@ -11,6 +11,9 @@ import { useBooking } from '@/context/BookingContext';
 import { formatDate, formatDateTime } from '@/lib/utils';
 import { Booking } from '@/types';
 
+// IMPORTANT: Force dynamic rendering (no static generation)
+export const dynamic = 'force-dynamic';
+
 export default function ProfilePage() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();

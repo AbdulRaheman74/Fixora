@@ -14,6 +14,10 @@ import apiClient from '@/lib/api/axios';
  * ============================================
  * Sabhi users API se fetch karta hai aur dikhata hai
  */
+
+// IMPORTANT: Force dynamic rendering (no static generation)
+export const dynamic = 'force-dynamic';
+
 export default function ManageUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);

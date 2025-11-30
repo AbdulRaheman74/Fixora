@@ -15,6 +15,10 @@ import { Booking } from '@/types';
  * ============================================
  * Admin sabhi bookings dekh sakta hai aur manage kar sakta hai
  */
+
+// IMPORTANT: Force dynamic rendering (no static generation)
+export const dynamic = 'force-dynamic';
+
 export default function ManageBookingsPage() {
   const { bookings, isLoading: bookingsLoading, fetchBookings, updateBooking, deleteBooking } = useBooking();
   const [searchQuery, setSearchQuery] = useState('');

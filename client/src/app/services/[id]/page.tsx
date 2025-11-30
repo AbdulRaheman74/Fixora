@@ -14,6 +14,9 @@ import { useAuth } from '@/context/AuthContext';
 import { useBooking } from '@/context/BookingContext';
 import apiClient from '@/lib/api/axios';
 
+// IMPORTANT: Force dynamic rendering (no static generation)
+export const dynamic = 'force-dynamic';
+
 export default function ServiceDetailsPage() {
   const params = useParams();
   const router = useRouter();

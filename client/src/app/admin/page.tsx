@@ -20,6 +20,10 @@ import apiClient from '@/lib/api/axios';
  * ============================================
  * Dashboard mein real data show karta hai (services, users, bookings)
  */
+
+// IMPORTANT: Force dynamic rendering (no static generation)
+export const dynamic = 'force-dynamic';
+
 export default function AdminDashboard() {
   const { bookings } = useBooking();
   const [totalServices, setTotalServices] = useState(0);

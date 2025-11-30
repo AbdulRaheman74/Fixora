@@ -9,6 +9,9 @@ import ServiceCard from '@/components/ServiceCard';
 import { Service } from '@/types';
 import apiClient from '@/lib/api/axios';
 
+// IMPORTANT: Force dynamic rendering (no static generation)
+export const dynamic = 'force-dynamic';
+
 function ServicesContent() {
   const searchParams = useSearchParams();
   const category = searchParams.get('category');

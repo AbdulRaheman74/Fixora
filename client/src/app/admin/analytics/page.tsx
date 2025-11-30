@@ -30,6 +30,10 @@ const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
  * ============================================
  * Real analytics data API se fetch karta hai
  */
+
+// IMPORTANT: Force dynamic rendering (no static generation)
+export const dynamic = 'force-dynamic';
+
 export default function AnalyticsPage() {
   const { bookings } = useBooking();
   const [monthlyRevenue, setMonthlyRevenue] = useState<{ month: string; revenue: number; bookings?: number }[]>([]);
