@@ -33,7 +33,7 @@ export default function ContactPage() {
   };
 
   const whatsappMessage = `Hello! I need help with: ${formData.message || 'General inquiry'}`;
-  const whatsappLink = getWhatsAppLink('+919876543210', whatsappMessage);
+  const whatsappLink = getWhatsAppLink('+917448058032', whatsappMessage);
 
   return (
     <>
@@ -69,7 +69,7 @@ export default function ContactPage() {
                   <div className="bg-white p-6 rounded-xl shadow-md">
                     <Phone className="w-8 h-8 text-primary-600 mb-4" />
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">Phone</h3>
-                    <a href="tel:+919876543210" className="text-gray-600 hover:text-primary-600">
+                    <a href="tel:+917448058032" className="text-gray-600 hover:text-primary-600">
                       +91 98765 43210
                     </a>
                   </div>

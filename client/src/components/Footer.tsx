@@ -19,6 +19,7 @@ export default function Footer() {
       { label: 'Contact', href: '/contact' },
       { label: 'Privacy Policy', href: '#' },
       { label: 'Terms of Service', href: '#' },
+      // { label: 'Panel', href: '/admin/login' },
     ],
   };
 
@@ -119,7 +120,7 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
                 <Phone className="w-5 h-5 mt-0.5 text-primary-400" />
-                <a href="tel:+919876543210" className="hover:text-primary-400 transition-colors">
+                <a href="tel:+917448058032" className="hover:text-primary-400 transition-colors">
                   +91 98765 43210
                 </a>
               </li>

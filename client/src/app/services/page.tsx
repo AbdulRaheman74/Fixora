@@ -1,25 +1,64 @@
 'use client';
 
-import React, { useState, useMemo, Suspense } from 'react';
+import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ServiceCard from '@/components/ServiceCard';
-import servicesData from '@/data/services.json';
 import { Service } from '@/types';
+import apiClient from '@/lib/api/axios';
 
 function ServicesContent() {
   const searchParams = useSearchParams();
   const category = searchParams.get('category');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(category);
+  const [services, setServices] = useState<Service[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const services = useMemo(() => {
-    if (selectedCategory) {
-      return servicesData.filter(s => s.category === selectedCategory) as Service[];
-    }
-    return servicesData as Service[];
-  }, [selectedCategory]);
+  /**
+   * ============================================
+   * FETCH ALL SERVICES - API Integration
+   * ============================================
+   * Page load par sabhi services API se fetch karta hai
+   */
+  useEffect(() => {
+    const fetchServices = async () => {
+      setIsLoading(true);
+      setError('');
+      
+      try {
+        // STEP 1: Category filter ke saath API call karo
+        const categoryParam = selectedCategory ? `?category=${selectedCategory}` : '';
+        const response = await apiClient.get(`/api/services${categoryParam}`);
+        
+        // STEP 2: Agar success hai, to services ko state mein save karo
+        if (response.data.success && response.data.services) {
+          const servicesList: Service[] = response.data.services.map((service: any) => ({
+            id: service.id,
+            title: service.title,
+            description: service.description,
+            category: service.category,
+            price: service.price,
+            duration: service.duration,
+            image: service.image,
+            features: service.features || [],
+            rating: service.rating || 0,
+            reviews: service.reviews || 0,
+          }));
+          setServices(servicesList);
+        }
+      } catch (error: any) {
+        console.error('Fetch Services Error:', error);
+        setError('Failed to load services. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchServices();
+  }, [selectedCategory]); // Category change par automatically fetch hoga
 
   const categories = [
     { id: null, label: 'All Services', icon: '🔧' },
@@ -73,13 +112,38 @@ function ServicesContent() {
         {/* Services Grid */}
         <section className="py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {services.length > 0 ? (
+            {/* Loading State */}
+            {isLoading && (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+                <p className="mt-4 text-gray-600">Loading services...</p>
+              </div>
+            )}
+
+            {/* Error State */}
+            {error && (
+              <div className="text-center py-12">
+                <p className="text-red-600 text-lg mb-4">{error}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+
+            {/* Services Grid */}
+            {!isLoading && !error && services.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {services.map((service, index) => (
                   <ServiceCard key={service.id} service={service} index={index} />
                 ))}
               </div>
-            ) : (
+            )}
+
+            {/* Empty State */}
+            {!isLoading && !error && services.length === 0 && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}

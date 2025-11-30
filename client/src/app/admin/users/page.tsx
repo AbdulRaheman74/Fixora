@@ -1,16 +1,59 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Mail, Phone, Calendar, User as UserIcon } from 'lucide-react';
 import Footer from '@/components/Footer';
-import usersData from '@/data/users.json';
 import { User } from '@/types';
 import { formatDate } from '@/lib/utils';
+import apiClient from '@/lib/api/axios';
 
+/**
+ * ============================================
+ * ADMIN USERS PAGE - API Integration
+ * ============================================
+ * Sabhi users API se fetch karta hai aur dikhata hai
+ */
 export default function ManageUsersPage() {
-  const [users] = useState<User[]>(usersData.filter(u => u.role === 'user') as User[]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+
+  /**
+   * ============================================
+   * FETCH ALL USERS - API Integration
+   * ============================================
+   * Page load par sabhi users API se fetch karta hai
+   */
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setIsLoading(true);
+      try {
+        // STEP 1: API call karo - GET /api/admin/users?role=user
+        const response = await apiClient.get('/api/admin/users?role=user');
+        
+        // STEP 2: Agar success hai, to users ko state mein save karo
+        if (response.data.success && response.data.users) {
+          const usersList: User[] = response.data.users.map((user: any) => ({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            role: user.role || 'user',
+            createdAt: user.createdAt || new Date().toISOString(),
+          }));
+          setUsers(usersList);
+        }
+      } catch (error: any) {
+        console.error('Fetch Users Error:', error);
+        setUsers([]); // Error case mein empty array
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []); // Sirf ek baar page load par fetch karo
 
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -51,26 +94,33 @@ export default function ManageUsersPage() {
 
           {/* Users Table */}
           <div className="bg-white rounded-xl shadow-md overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      User
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Contact
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Member Since
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredUsers.length > 0 ? (
+            {/* Loading State */}
+            {isLoading ? (
+              <div className="p-12 text-center">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+                <p className="mt-4 text-gray-600">Loading users...</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        User
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Contact
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Member Since
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredUsers.length > 0 ? (
                     filteredUsers.map((user, index) => (
                       <motion.tr
                         key={user.id}
@@ -113,15 +163,16 @@ export default function ManageUsersPage() {
                       </motion.tr>
                     ))
                   ) : (
-                    <tr>
-                      <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
-                        No users found
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                      <tr>
+                        <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                          No users found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           {/* Stats */}

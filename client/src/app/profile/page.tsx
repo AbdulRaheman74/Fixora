@@ -13,20 +13,30 @@ import { Booking } from '@/types';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
-  const { getUserBookings } = useBooking();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { bookings, isLoading: bookingsLoading, fetchBookings, getUserBookings } = useBooking();
 
+  /**
+   * ============================================
+   * AUTH CHECK - Redirect if not logged in
+   * ============================================
+   * IMPORTANT: Bookings automatically BookingContext se fetch ho rahi hain
+   * Yahan sirf auth check karte hain, duplicate fetch nahi karte
+   */
   useEffect(() => {
     if (!isAuthenticated) {
       router.push('/login');
+      return;
     }
   }, [isAuthenticated, router]);
 
-  if (!isAuthenticated || !user) {
+  // Loading state - auth check complete hone tak
+  if (authLoading || !isAuthenticated || !user) {
     return null;
   }
 
-  const bookings = getUserBookings(user.id);
+  // User ki bookings filter karo
+  const userBookings = getUserBookings(user.id);
 
   const getStatusIcon = (status: Booking['status']) => {
     switch (status) {
@@ -106,9 +116,15 @@ export default function ProfilePage() {
               <div className="bg-white rounded-xl shadow-md p-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">My Bookings</h2>
 
-                {bookings.length > 0 ? (
+                {/* Loading State */}
+                {bookingsLoading ? (
+                  <div className="text-center py-12">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                    <p className="mt-4 text-gray-600">Loading bookings...</p>
+                  </div>
+                ) : userBookings.length > 0 ? (
                   <div className="space-y-4">
-                    {bookings.map((booking, index) => (
+                    {userBookings.map((booking, index) => (
                       <motion.div
                         key={booking.id}
                         initial={{ opacity: 0, y: 20 }}

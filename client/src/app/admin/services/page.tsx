@@ -1,20 +1,24 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Edit, Trash2, Search } from 'lucide-react';
 import Footer from '@/components/Footer';
 import Button from '@/components/Button';
 import Modal from '@/components/Modal';
-import servicesData from '@/data/services.json';
 import { Service } from '@/types';
 import { formatCurrency } from '@/lib/utils';
+import apiClient from '@/lib/api/axios';
 
 export default function ManageServicesPage() {
-  const [services, setServices] = useState<Service[]>(servicesData as Service[]);
+  const [services, setServices] = useState<Service[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true); // For initial page load
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -26,6 +30,50 @@ export default function ManageServicesPage() {
     rating: '4.5',
     reviews: '0',
   });
+
+  /**
+   * ============================================
+   * FETCH ALL SERVICES - Page Load Par
+   * ============================================
+   * Yeh function page load par sabhi services fetch karta hai
+   * Refresh ke baad bhi services automatically load ho jayengi
+   */
+  const fetchServices = async () => {
+    setIsFetching(true);
+    setError('');
+    
+    try {
+      // STEP 1: API call karo - GET /api/services
+      const response = await apiClient.get('/api/services');
+      
+      // STEP 2: Agar success hai, to services ko state mein save karo
+      if (response.data.success && response.data.services) {
+        const servicesList: Service[] = response.data.services.map((service: any) => ({
+          id: service.id,
+          title: service.title,
+          description: service.description,
+          category: service.category,
+          price: service.price,
+          duration: service.duration,
+          image: service.image,
+          features: service.features || [],
+          rating: service.rating || 0,
+          reviews: service.reviews || 0,
+        }));
+        setServices(servicesList);
+      }
+    } catch (error: any) {
+      console.error('Fetch Services Error:', error);
+      setError('Failed to load services. Please refresh the page.');
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
+  // Page load par automatically services fetch karo
+  useEffect(() => {
+    fetchServices();
+  }, []);
 
   const filteredServices = services.filter(service =>
     service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -64,42 +112,160 @@ export default function ManageServicesPage() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this service?')) {
-      setServices(services.filter(s => s.id !== id));
+  /**
+   * ============================================
+   * DELETE SERVICE - API Integration
+   * ============================================
+   * Yeh function service delete karne ke liye API call karta hai
+   */
+  const handleDelete = async (id: string) => {
+    // Confirmation dialog
+    if (!confirm('Are you sure you want to delete this service?')) {
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      // STEP 1: API call karo - DELETE /api/services/[id]
+      const response = await apiClient.delete(`/api/services/${id}`);
+      
+      // STEP 2: Agar success hai, to service ko list se remove karo
+      if (response.data.success) {
+        setServices(services.filter(s => s.id !== id));
+        setSuccess('Service deleted successfully!');
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch (error: any) {
+      console.error('Delete Service Error:', error);
+      setError(error.error || error.message || 'Failed to delete service. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  /**
+   * ============================================
+   * CREATE SERVICE - API Integration
+   * ============================================
+   * Yeh function service create karne ke liye API call karta hai
+   * Simple aur beginner-friendly implementation
+   */
+  /**
+   * ============================================
+   * CREATE/UPDATE SERVICE - API Integration
+   * ============================================
+   * Yeh function service create/update karne ke liye API call karta hai
+   * Simple aur beginner-friendly implementation
+   */
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Replace with actual API call
+    
+    // Loading start karo
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
 
-    if (editingService) {
-      setServices(services.map(s =>
-        s.id === editingService.id
-          ? {
-              ...s,
-              ...formData,
-              price: Number(formData.price),
-              rating: Number(formData.rating),
-              reviews: Number(formData.reviews),
-              features: formData.features.split(',').map(f => f.trim()),
-            }
-          : s
-      ));
-    } else {
-      const newService: Service = {
-        id: 'service-' + Date.now(),
-        ...formData,
-        price: Number(formData.price),
-        rating: Number(formData.rating),
-        reviews: Number(formData.reviews),
-        features: formData.features.split(',').map(f => f.trim()),
-      };
-      setServices([...services, newService]);
+    try {
+      // STEP 1: Features ko array mein convert karo (comma se separated string se)
+      const featuresArray = formData.features
+        .split(',')
+        .map(f => f.trim())
+        .filter(f => f.length > 0); // Empty features remove karo
+
+      // STEP 2: Check karo edit mode hai ya create mode
+      if (editingService) {
+        // EDIT MODE: PUT API call karo
+        const response = await apiClient.put(`/api/services/${editingService.id}`, {
+          title: formData.title.trim(),
+          description: formData.description.trim(),
+          category: formData.category,
+          price: Number(formData.price),
+          duration: formData.duration.trim(),
+          image: formData.image.trim(),
+          features: featuresArray,
+        });
+
+        // STEP 3: Agar success hai, to service ko update karo
+        if (response.data.success && response.data.service) {
+          const updatedService: Service = {
+            id: response.data.service.id,
+            title: response.data.service.title,
+            description: response.data.service.description,
+            category: response.data.service.category,
+            price: response.data.service.price,
+            duration: response.data.service.duration,
+            image: response.data.service.image,
+            features: response.data.service.features,
+            rating: response.data.service.rating || 0,
+            reviews: response.data.service.reviews || 0,
+          };
+
+          // Services list mein service ko update karo
+          setServices(services.map(s => s.id === updatedService.id ? updatedService : s));
+          setSuccess('Service updated successfully!');
+          setIsModalOpen(false);
+          setTimeout(() => setSuccess(''), 3000);
+        }
+      } else {
+        // CREATE MODE: POST API call karo
+        const response = await apiClient.post('/api/services', {
+          title: formData.title.trim(),
+          description: formData.description.trim(),
+          category: formData.category,
+          price: Number(formData.price),
+          duration: formData.duration.trim(),
+          image: formData.image.trim(),
+          features: featuresArray,
+        });
+
+        // STEP 4: Agar success hai, to response se service data lo
+        if (response.data.success && response.data.service) {
+          const newService: Service = {
+            id: response.data.service.id,
+            title: response.data.service.title,
+            description: response.data.service.description,
+            category: response.data.service.category,
+            price: response.data.service.price,
+            duration: response.data.service.duration,
+            image: response.data.service.image,
+            features: response.data.service.features,
+            rating: response.data.service.rating || 0,
+            reviews: response.data.service.reviews || 0,
+          };
+
+          // STEP 5: Services list mein naya service add karo
+          setServices([...services, newService]);
+          setSuccess('Service created successfully!');
+
+          // STEP 6: Form reset karo
+          setFormData({
+            title: '',
+            description: '',
+            category: 'electrician',
+            price: '',
+            duration: '',
+            image: '',
+            features: '',
+            rating: '4.5',
+            reviews: '0',
+          });
+
+          // STEP 7: Modal close karo
+          setIsModalOpen(false);
+          setTimeout(() => setSuccess(''), 3000);
+        }
+      }
+    } catch (error: any) {
+      // STEP 8: Agar error aaye, to error message dikhao
+      console.error(editingService ? 'Update Service Error:' : 'Create Service Error:', error);
+      setError(error.error || error.message || `Failed to ${editingService ? 'update' : 'create'} service. Please try again.`);
+    } finally {
+      // STEP 9: Loading complete
+      setIsLoading(false);
     }
-
-    setIsModalOpen(false);
   };
 
   return (
@@ -126,6 +292,28 @@ export default function ManageServicesPage() {
         </section>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* Success Message */}
+          {success && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg"
+            >
+              {success}
+            </motion.div>
+          )}
+
+          {/* Error Message */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg"
+            >
+              {error}
+            </motion.div>
+          )}
+
           {/* Search */}
           <div className="mb-6">
             <div className="relative">
@@ -140,9 +328,28 @@ export default function ManageServicesPage() {
             </div>
           </div>
 
+          {/* Loading State */}
+          {isFetching && (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+              <p className="mt-4 text-gray-600">Loading services...</p>
+            </div>
+          )}
+
           {/* Services Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredServices.map((service, index) => (
+          {!isFetching && filteredServices.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-600 text-lg">No services found.</p>
+              <Button onClick={handleAdd} className="mt-4">
+                <Plus className="w-5 h-5 mr-2" />
+                Add Your First Service
+              </Button>
+            </div>
+          )}
+
+          {!isFetching && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredServices.map((service, index) => (
               <motion.div
                 key={service.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -196,6 +403,7 @@ export default function ManageServicesPage() {
               </motion.div>
             ))}
           </div>
+          )}
         </div>
       </main>
 
@@ -317,12 +525,31 @@ export default function ManageServicesPage() {
             </div>
           </div>
 
+          {/* Error message in modal */}
+          {error && (
+            <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="flex-1">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => {
+                setIsModalOpen(false);
+                setError('');
+                setSuccess('');
+              }} 
+              className="flex-1"
+              disabled={isLoading}
+            >
               Cancel
             </Button>
-            <Button type="submit" className="flex-1">
-              {editingService ? 'Update' : 'Add'} Service
+            <Button type="submit" className="flex-1" disabled={isLoading}>
+              {isLoading 
+                ? (editingService ? 'Updating...' : 'Creating...') 
+                : (editingService ? 'Update' : 'Add')} Service
             </Button>
           </div>
         </form>

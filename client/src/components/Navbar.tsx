@@ -5,22 +5,19 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, User, LogOut, Settings } from 'lucide-react';
+import { Menu, X, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import Button from './Button';
 
-// TODO: Replace with final logo files from designer
-// Logo paths - SVG files in public/assets/logo/
 const LogoIcon = '/assets/logo/logo-icon.svg';
 const LogoFull = '/assets/logo/logo-full.svg';
-const LogoFullDark = '/assets/logo/logo-full-dark.svg';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, isLoading } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -30,8 +27,13 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const isAdmin = user?.role === 'admin';
+  // IMPORTANT: Loading ke dauran kuch nahi dikhao - sirf loading complete hone ke baad
+  // Admin check - loading complete + user admin hona chahiye
+  const isAdmin = !isLoading && isAuthenticated && user?.role === 'admin';
   const isAdminRoute = pathname?.startsWith('/admin');
+  
+  // Authenticated UI sirf tab dikhao jab loading complete ho
+  const showAuthenticatedUI = !isLoading && isAuthenticated;
 
   const navLinks = [
     { href: '/', label: 'Home' },
@@ -59,13 +61,12 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo - Responsive: Icon only on mobile, full logo on desktop */}
+          {/* Logo link - admin routes par /admin, normal pages par / */}
           <Link 
-            href={isAdmin ? '/admin' : '/'} 
+            href={isAdminRoute ? '/admin' : '/'} 
             className="flex items-center gap-2 group"
             aria-label="Fixora - Smart Solutions for Your Home"
           >
-            {/* Icon only - visible on mobile */}
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -80,8 +81,6 @@ export default function Navbar() {
                 priority
               />
             </motion.div>
-            
-            {/* Full logo - visible on desktop */}
             <motion.div
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -96,16 +95,14 @@ export default function Navbar() {
                 priority
               />
             </motion.div>
-            
-            {/* Admin Panel text fallback */}
-            {isAdmin && (
+            {/* "Admin Panel" text sirf admin routes par dikhao, normal pages par nahi */}
+            {isAdmin && isAdminRoute && (
               <span className="hidden md:block text-lg font-semibold text-gray-700 ml-2">
                 Admin Panel
               </span>
             )}
           </Link>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             {!isAdminRoute && navLinks.map(link => (
               <Link
@@ -127,7 +124,7 @@ export default function Navbar() {
               </Link>
             ))}
 
-            {isAuthenticated ? (
+            {showAuthenticatedUI ? (
               <div className="flex items-center gap-4">
                 {!isAdminRoute && (
                   <Link href="/profile">
@@ -137,20 +134,13 @@ export default function Navbar() {
                     </Button>
                   </Link>
                 )}
-                {isAdmin && !isAdminRoute && (
-                  <Link href="/admin">
-                    <Button variant="outline" size="sm">
-                      Admin
-                    </Button>
-                  </Link>
-                )}
                 <Button variant="ghost" size="sm" onClick={handleLogout}>
                   <LogOut className="w-4 h-4 mr-2" />
                   Logout
                 </Button>
               </div>
             ) : (
-              !isAdminRoute && (
+              !isLoading && !isAdminRoute && (
                 <div className="flex items-center gap-3">
                   <Link href="/login">
                     <Button variant="ghost" size="sm">Login</Button>
@@ -163,7 +153,6 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="md:hidden p-2 rounded-lg hover:bg-gray-100"
@@ -173,7 +162,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -197,7 +185,7 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ))}
-              {isAuthenticated ? (
+              {showAuthenticatedUI ? (
                 <>
                   {!isAdminRoute && (
                     <Link
@@ -206,15 +194,6 @@ export default function Navbar() {
                       className="block py-2 font-medium text-gray-700"
                     >
                       Profile
-                    </Link>
-                  )}
-                  {isAdmin && !isAdminRoute && (
-                    <Link
-                      href="/admin"
-                      onClick={() => setIsOpen(false)}
-                      className="block py-2 font-medium text-gray-700"
-                    >
-                      Admin Panel
                     </Link>
                   )}
                   <button
@@ -228,7 +207,7 @@ export default function Navbar() {
                   </button>
                 </>
               ) : (
-                !isAdminRoute && (
+                !isLoading && !isAdminRoute && (
                   <>
                     <Link
                       href="/login"
@@ -254,4 +233,3 @@ export default function Navbar() {
     </motion.nav>
   );
 }
-

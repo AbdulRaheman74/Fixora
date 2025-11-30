@@ -1,11 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Footer from '@/components/Footer';
 import ChartCard from '@/components/ChartCard';
 import { useBooking } from '@/context/BookingContext';
-import servicesData from '@/data/services.json';
+import apiClient from '@/lib/api/axios';
 import {
   LineChart,
   Line,
@@ -24,27 +24,95 @@ import {
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
+/**
+ * ============================================
+ * ADMIN ANALYTICS PAGE - API Integration
+ * ============================================
+ * Real analytics data API se fetch karta hai
+ */
 export default function AnalyticsPage() {
   const { bookings } = useBooking();
+  const [monthlyRevenue, setMonthlyRevenue] = useState<{ month: string; revenue: number; bookings?: number }[]>([]);
+  const [servicePopularity, setServicePopularity] = useState<{ name: string; bookings: number; revenue: number }[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Monthly revenue data
-  const monthlyRevenue = [
-    { month: 'Jan', revenue: 45000, bookings: 25 },
-    { month: 'Feb', revenue: 52000, bookings: 30 },
-    { month: 'Mar', revenue: 48000, bookings: 28 },
-    { month: 'Apr', revenue: 61000, bookings: 35 },
-    { month: 'May', revenue: 55000, bookings: 32 },
-    { month: 'Jun', revenue: 67000, bookings: 38 },
-  ];
+  /**
+   * ============================================
+   * FETCH ANALYTICS DATA - API Integration
+   * ============================================
+   * Analytics data API se fetch karta hai
+   */
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      setIsLoading(true);
+      try {
+        // STEP 1: API call karo - GET /api/admin/analytics
+        const response = await apiClient.get('/api/admin/analytics');
+        
+        // STEP 2: Agar success hai, to analytics data ko state mein save karo
+        if (response.data.success && response.data.analytics) {
+          const analytics = response.data.analytics;
+          
+          // Monthly revenue format karo
+          const revenueData = analytics.monthlyRevenue || [];
+          setMonthlyRevenue(revenueData.map((item: any) => ({
+            month: item.month,
+            revenue: item.revenue || 0,
+          })));
 
-  // Service popularity
-  const servicePopularity = servicesData.map(service => ({
-    name: service.title,
-    bookings: bookings.filter(b => b.serviceId === service.id).length,
-    revenue: bookings
-      .filter(b => b.serviceId === service.id && (b.status === 'completed' || b.status === 'confirmed'))
-      .reduce((sum) => sum + service.price, 0),
-  })).sort((a, b) => b.bookings - a.bookings);
+          // Service popularity format karo
+          const popularityData = analytics.servicePopularity || [];
+          setServicePopularity(popularityData.map((item: any) => ({
+            name: item.service || 'Unknown',
+            bookings: item.bookings || 0,
+            revenue: 0, // Revenue calculation abhi nahi hai API mein
+          })));
+        }
+      } catch (error: any) {
+        console.error('Fetch Analytics Error:', error);
+        // Error case mein empty arrays
+        setMonthlyRevenue([]);
+        setServicePopularity([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAnalytics();
+  }, []); // Sirf ek baar page load par fetch karo
+
+  // Service popularity - Agar API se data nahi aaya, to bookings se calculate karo
+  const calculatedServicePopularity = servicePopularity.length > 0 
+    ? servicePopularity 
+    : (() => {
+        const popularityMap: { [key: string]: { name: string; bookings: number } } = {};
+        bookings.forEach(booking => {
+          if (!popularityMap[booking.serviceId]) {
+            popularityMap[booking.serviceId] = {
+              name: booking.serviceName,
+              bookings: 0,
+            };
+          }
+          popularityMap[booking.serviceId].bookings += 1;
+        });
+        return Object.values(popularityMap).map(item => ({
+          name: item.name,
+          bookings: item.bookings,
+          revenue: 0,
+        })).sort((a, b) => b.bookings - a.bookings);
+      })();
+
+  // Monthly revenue - Agar API se data nahi aaya, to empty array
+  const displayMonthlyRevenue = monthlyRevenue.length > 0 
+    ? monthlyRevenue 
+    : [
+        { month: 'Jan', revenue: 0 },
+        { month: 'Feb', revenue: 0 },
+        { month: 'Mar', revenue: 0 },
+        { month: 'Apr', revenue: 0 },
+        { month: 'May', revenue: 0 },
+        { month: 'Jun', revenue: 0 },
+      ];
 
   // Status distribution
   const statusDistribution = [
@@ -97,32 +165,29 @@ export default function AnalyticsPage() {
         </section>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {/* Monthly Revenue & Bookings */}
-            <ChartCard title="Monthly Revenue & Bookings">
+          {/* Loading State */}
+          {isLoading ? (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+              <p className="mt-4 text-gray-600">Loading analytics data...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Monthly Revenue */}
+            <ChartCard title="Monthly Revenue">
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={monthlyRevenue}>
+                <LineChart data={displayMonthlyRevenue}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
-                  <YAxis yAxisId="left" />
-                  <YAxis yAxisId="right" orientation="right" />
+                  <YAxis />
                   <Tooltip />
                   <Legend />
                   <Line
-                    yAxisId="left"
                     type="monotone"
                     dataKey="revenue"
                     stroke="#3b82f6"
                     strokeWidth={2}
                     name="Revenue (₹)"
-                  />
-                  <Line
-                    yAxisId="right"
-                    type="monotone"
-                    dataKey="bookings"
-                    stroke="#10b981"
-                    strokeWidth={2}
-                    name="Bookings"
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -131,7 +196,7 @@ export default function AnalyticsPage() {
             {/* Service Popularity */}
             <ChartCard title="Top Services by Bookings">
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={servicePopularity.slice(0, 5)}>
+                <BarChart data={calculatedServicePopularity.slice(0, 5)}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
                   <YAxis />
@@ -205,7 +270,7 @@ export default function AnalyticsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {servicePopularity.slice(0, 5).map((service, index) => (
+                    {calculatedServicePopularity.slice(0, 5).map((service, index) => (
                       <tr key={index} className="border-b">
                         <td className="py-2 px-2">{service.name}</td>
                         <td className="text-right py-2 px-2">{service.bookings}</td>
@@ -217,6 +282,7 @@ export default function AnalyticsPage() {
               </div>
             </ChartCard>
           </div>
+          )}
         </div>
       </main>
       <Footer />

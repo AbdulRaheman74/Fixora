@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Calendar, Clock, MapPin, Phone, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import Footer from '@/components/Footer';
@@ -9,10 +9,27 @@ import { useBooking } from '@/context/BookingContext';
 import { formatDate, formatDateTime } from '@/lib/utils';
 import { Booking } from '@/types';
 
+/**
+ * ============================================
+ * ADMIN BOOKINGS PAGE - API Integration
+ * ============================================
+ * Admin sabhi bookings dekh sakta hai aur manage kar sakta hai
+ */
 export default function ManageBookingsPage() {
-  const { bookings, updateBooking, deleteBooking } = useBooking();
+  const { bookings, isLoading: bookingsLoading, fetchBookings, updateBooking, deleteBooking } = useBooking();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  /**
+   * ============================================
+   * BOOKINGS FETCH - Already handled by BookingContext
+   * ============================================
+   * IMPORTANT: Bookings automatically BookingContext se fetch ho rahi hain
+   * Yahan sirf manual refresh ke liye fetchBookings available hai
+   * Page load par automatic fetch nahi karte (duplicate calls avoid karne ke liye)
+   */
 
   const filteredBookings = bookings.filter(booking => {
     const matchesSearch =
@@ -25,8 +42,64 @@ export default function ManageBookingsPage() {
     return matchesSearch && matchesStatus;
   });
 
-  const handleStatusChange = (id: string, newStatus: Booking['status']) => {
-    updateBooking(id, { status: newStatus });
+  /**
+   * ============================================
+   * UPDATE BOOKING STATUS - API Integration
+   * ============================================
+   * Booking status update karta hai (pending, confirmed, etc.)
+   */
+  const handleStatusChange = async (id: string, newStatus: Booking['status']) => {
+    setSuccessMessage('');
+    setErrorMessage('');
+    
+    try {
+      // STEP 1: BookingContext ka updateBooking function call karo (yeh internally API call karega)
+      const success = await updateBooking(id, { status: newStatus });
+      
+      // STEP 2: Agar success hai, to success message dikhao aur bookings refresh karo
+      if (success) {
+        setSuccessMessage('Booking status updated successfully!');
+        fetchBookings(); // Refresh bookings
+        setTimeout(() => setSuccessMessage(''), 3000); // 3 seconds baad message hide karo
+      } else {
+        setErrorMessage('Failed to update booking status. Please try again.');
+      }
+    } catch (error: any) {
+      console.error('Update Status Error:', error);
+      setErrorMessage(error.error || 'Failed to update booking status. Please try again.');
+    }
+  };
+
+  /**
+   * ============================================
+   * DELETE BOOKING - API Integration
+   * ============================================
+   * Booking ko delete karta hai
+   */
+  const handleDeleteBooking = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this booking?')) {
+      return;
+    }
+    
+    setSuccessMessage('');
+    setErrorMessage('');
+    
+    try {
+      // STEP 1: BookingContext ka deleteBooking function call karo (yeh internally API call karega)
+      const success = await deleteBooking(id);
+      
+      // STEP 2: Agar success hai, to success message dikhao aur bookings refresh karo
+      if (success) {
+        setSuccessMessage('Booking deleted successfully!');
+        fetchBookings(); // Refresh bookings
+        setTimeout(() => setSuccessMessage(''), 3000); // 3 seconds baad message hide karo
+      } else {
+        setErrorMessage('Failed to delete booking. Please try again.');
+      }
+    } catch (error: any) {
+      console.error('Delete Booking Error:', error);
+      setErrorMessage(error.error || 'Failed to delete booking. Please try again.');
+    }
   };
 
   const getStatusIcon = (status: Booking['status']) => {
@@ -80,6 +153,18 @@ export default function ManageBookingsPage() {
         </section>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* Success/Error Messages */}
+          {successMessage && (
+            <div className="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
+              {successMessage}
+            </div>
+          )}
+          {errorMessage && (
+            <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+              {errorMessage}
+            </div>
+          )}
+
           {/* Filters */}
           <div className="mb-6 space-y-4">
             <div className="relative">
@@ -112,7 +197,13 @@ export default function ManageBookingsPage() {
 
           {/* Bookings List */}
           <div className="space-y-4">
-            {filteredBookings.length > 0 ? (
+            {/* Loading State */}
+            {bookingsLoading ? (
+              <div className="bg-white rounded-xl shadow-md p-12 text-center">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+                <p className="mt-4 text-gray-600">Loading bookings...</p>
+              </div>
+            ) : filteredBookings.length > 0 ? (
               filteredBookings.map((booking, index) => (
                 <motion.div
                   key={booking.id}
@@ -179,11 +270,7 @@ export default function ManageBookingsPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => {
-                          if (confirm('Are you sure you want to delete this booking?')) {
-                            deleteBooking(booking.id);
-                          }
-                        }}
+                        onClick={() => handleDeleteBooking(booking.id)}
                         className="text-red-600 border-red-600 hover:bg-red-50"
                       >
                         Delete

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { 
@@ -12,29 +12,63 @@ import Footer from '@/components/Footer';
 import RevenueChart from '@/components/charts/RevenueChart';
 import ServicePopularityChart from '@/components/charts/ServicePopularityChart';
 import { useBooking } from '@/context/BookingContext';
-import servicesData from '@/data/services.json';
-import usersData from '@/data/users.json';
+import apiClient from '@/lib/api/axios';
 
+/**
+ * ============================================
+ * ADMIN DASHBOARD - Real Data Integration
+ * ============================================
+ * Dashboard mein real data show karta hai (services, users, bookings)
+ */
 export default function AdminDashboard() {
   const { bookings } = useBooking();
+  const [totalServices, setTotalServices] = useState(0);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Calculate statistics
+  /**
+   * ============================================
+   * FETCH STATISTICS - Services & Users Count
+   * ============================================
+   * Services aur Users ki count API se fetch karta hai
+   */
+  useEffect(() => {
+    const fetchStats = async () => {
+      setIsLoading(true);
+      try {
+        // STEP 1: Services count - GET /api/services (all services fetch karo)
+        const servicesResponse = await apiClient.get('/api/services');
+        if (servicesResponse.data.success && servicesResponse.data.services) {
+          setTotalServices(servicesResponse.data.services.length);
+        }
+
+        // STEP 2: Users count - GET /api/admin/users?role=user (only users)
+        const usersResponse = await apiClient.get('/api/admin/users?role=user');
+        if (usersResponse.data.success && usersResponse.data.users) {
+          setTotalUsers(usersResponse.data.users.length);
+        }
+      } catch (error: any) {
+        console.error('Fetch Stats Error:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []); // Sirf ek baar page load par fetch karo
+
+  // Calculate statistics (bookings already real data se aa rahi hain)
   const stats = {
-    totalServices: servicesData.length,
-    totalUsers: usersData.filter(u => u.role === 'user').length,
+    totalServices: totalServices,
+    totalUsers: totalUsers,
     totalBookings: bookings.length,
     pendingBookings: bookings.filter(b => b.status === 'pending').length,
     confirmedBookings: bookings.filter(b => b.status === 'confirmed').length,
     completedBookings: bookings.filter(b => b.status === 'completed').length,
-    totalRevenue: bookings
-      .filter(b => b.status === 'completed' || b.status === 'confirmed')
-      .reduce((sum, booking) => {
-        const service = servicesData.find(s => s.id === booking.serviceId);
-        return sum + (service?.price || 0);
-      }, 0),
+    totalRevenue: 0, // Revenue calculation ke liye services data chahiye (later add karenge)
   };
 
-  // Monthly revenue data (sample)
+  // Monthly revenue data - Abhi hardcoded (Analytics API se later integrate karenge)
   const monthlyRevenue = [
     { month: 'Jan', revenue: 45000 },
     { month: 'Feb', revenue: 52000 },
@@ -44,11 +78,25 @@ export default function AdminDashboard() {
     { month: 'Jun', revenue: 67000 },
   ];
 
-  // Service popularity data
-  const servicePopularity = servicesData.slice(0, 5).map(service => ({
-    service: service.title,
-    bookings: bookings.filter(b => b.serviceId === service.id).length,
-  }));
+  // Service popularity data - Real bookings se calculate karte hain
+  const servicePopularityMap: { [key: string]: { name: string; count: number } } = {};
+  bookings.forEach(booking => {
+    if (!servicePopularityMap[booking.serviceId]) {
+      servicePopularityMap[booking.serviceId] = {
+        name: booking.serviceName,
+        count: 0,
+      };
+    }
+    servicePopularityMap[booking.serviceId].count += 1;
+  });
+
+  const servicePopularity = Object.values(servicePopularityMap)
+    .map(item => ({
+      service: item.name,
+      bookings: item.count,
+    }))
+    .sort((a, b) => b.bookings - a.bookings)
+    .slice(0, 5);
 
   const statCards = [
     {
@@ -125,6 +173,14 @@ export default function AdminDashboard() {
         </section>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* Loading State */}
+          {isLoading ? (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+              <p className="mt-4 text-gray-600">Loading dashboard data...</p>
+            </div>
+          ) : (
+            <>
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {statCards.map((stat, index) => {
@@ -189,6 +245,8 @@ export default function AdminDashboard() {
               <ServicePopularityChart data={servicePopularity} />
             </ChartCard>
           </div>
+          </>
+          )}
         </div>
       </main>
       <Footer />

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Star, Clock, IndianRupee, CheckCircle, Calendar, MapPin, Phone } from 'lucide-react';
@@ -8,18 +8,24 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Button from '@/components/Button';
 import Modal from '@/components/Modal';
-import servicesData from '@/data/services.json';
 import { Service } from '@/types';
 import { formatCurrency, getWhatsAppLink } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { useBooking } from '@/context/BookingContext';
+import apiClient from '@/lib/api/axios';
 
 export default function ServiceDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
   const { addBooking } = useBooking();
+  const [service, setService] = useState<Service | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState('');
+  const [bookingError, setBookingError] = useState('');
   const [bookingData, setBookingData] = useState({
     date: '',
     time: '',
@@ -29,15 +35,76 @@ export default function ServiceDetailsPage() {
   });
 
   const serviceId = Array.isArray(params.id) ? params.id[0] : params.id;
-  const service = servicesData.find(s => s.id === serviceId) as Service | undefined;
 
-  if (!service) {
+  /**
+   * ============================================
+   * FETCH SINGLE SERVICE - API Integration
+   * ============================================
+   * Page load par single service API se fetch karta hai
+   */
+  useEffect(() => {
+    const fetchService = async () => {
+      if (!serviceId) return;
+      
+      setIsLoading(true);
+      setError('');
+      
+      try {
+        // STEP 1: API call karo - GET /api/services/[id]
+        const response = await apiClient.get(`/api/services/${serviceId}`);
+        
+        // STEP 2: Agar success hai, to service data ko state mein save karo
+        if (response.data.success && response.data.service) {
+          const serviceData: Service = {
+            id: response.data.service.id,
+            title: response.data.service.title,
+            description: response.data.service.description,
+            category: response.data.service.category,
+            price: response.data.service.price,
+            duration: response.data.service.duration,
+            image: response.data.service.image,
+            features: response.data.service.features || [],
+            rating: response.data.service.rating || 0,
+            reviews: response.data.service.reviews || 0,
+          };
+          setService(serviceData);
+        }
+      } catch (error: any) {
+        console.error('Fetch Service Error:', error);
+        setError(error.error || 'Service not found');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchService();
+  }, [serviceId]);
+
+  // Loading State
+  if (isLoading) {
     return (
       <>
         <Navbar />
-        <main className="pt-16 min-h-screen flex items-center justify-center">
+        <main className="pt-16 min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading service details...</p>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  // Error State
+  if (error || !service) {
+    return (
+      <>
+        <Navbar />
+        <main className="pt-16 min-h-screen flex items-center justify-center bg-gray-50">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Service Not Found</h1>
+            <p className="text-gray-600 mb-4">{error || 'The service you are looking for does not exist.'}</p>
             <Button onClick={() => router.push('/services')}>Back to Services</Button>
           </div>
         </main>
@@ -54,27 +121,54 @@ export default function ServiceDetailsPage() {
     setIsBookingModalOpen(true);
   };
 
-  const submitBooking = () => {
-    if (!user) return;
+  /**
+   * ============================================
+   * SUBMIT BOOKING - API Integration
+   * ============================================
+   * Booking create karta hai API se
+   */
+  const submitBooking = async () => {
+    if (!user || !service) return;
     
-    // TODO: Replace with actual API call
-    addBooking({
-      userId: user.id,
-      serviceId: service.id,
-      serviceName: service.title,
-      date: bookingData.date,
-      time: bookingData.time,
-      status: 'pending',
-      address: bookingData.address,
-      phone: bookingData.phone,
-      notes: bookingData.notes,
-    });
-    setIsBookingModalOpen(false);
-    router.push('/profile');
+    setIsSubmittingBooking(true);
+    setBookingError('');
+    setBookingSuccess('');
+    
+    try {
+      // STEP 1: BookingContext ka addBooking function call karo (yeh internally API call karega)
+      const success = await addBooking({
+        userId: user.id,
+        serviceId: service.id,
+        serviceName: service.title,
+        date: bookingData.date,
+        time: bookingData.time,
+        status: 'pending',
+        address: bookingData.address,
+        phone: bookingData.phone,
+        notes: bookingData.notes,
+      });
+      
+      // STEP 2: Agar success hai, to modal band karo aur profile page pe redirect karo
+      if (success) {
+        setBookingSuccess('Booking created successfully!');
+        setIsBookingModalOpen(false);
+        // 1 second baad profile page pe redirect karo
+        setTimeout(() => {
+          router.push('/profile');
+        }, 1000);
+      } else {
+        setBookingError('Failed to create booking. Please try again.');
+      }
+    } catch (error: any) {
+      console.error('Booking Error:', error);
+      setBookingError(error.error || 'Failed to create booking. Please try again.');
+    } finally {
+      setIsSubmittingBooking(false);
+    }
   };
 
   const whatsappMessage = `Hello! I'm interested in booking ${service.title}.`;
-  const whatsappLink = getWhatsAppLink('+919876543210', whatsappMessage);
+  const whatsappLink = getWhatsAppLink('+917448058032', whatsappMessage);
 
   return (
     <>
@@ -178,6 +272,19 @@ export default function ServiceDetailsPage() {
         size="md"
       >
         <form onSubmit={(e) => { e.preventDefault(); submitBooking(); }} className="space-y-4">
+          {/* Success Message */}
+          {bookingSuccess && (
+            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
+              {bookingSuccess}
+            </div>
+          )}
+          
+          {/* Error Message */}
+          {bookingError && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+              {bookingError}
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <Calendar className="w-4 h-4 inline mr-2" />
@@ -261,11 +368,21 @@ export default function ServiceDetailsPage() {
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => setIsBookingModalOpen(false)} className="flex-1">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => {
+                setIsBookingModalOpen(false);
+                setBookingError('');
+                setBookingSuccess('');
+              }} 
+              className="flex-1"
+              disabled={isSubmittingBooking}
+            >
               Cancel
             </Button>
-            <Button type="submit" className="flex-1">
-              Confirm Booking
+            <Button type="submit" className="flex-1" disabled={isSubmittingBooking}>
+              {isSubmittingBooking ? 'Creating Booking...' : 'Confirm Booking'}
             </Button>
           </div>
         </form>
