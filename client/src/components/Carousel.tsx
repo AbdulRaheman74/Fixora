@@ -1,9 +1,28 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence, PanInfo } from 'framer-motion';
+import { motion, AnimatePresence, PanInfo, useMotionValue, useSpring } from 'framer-motion';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight, Play, Pause, Circle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, Pause, Circle, Maximize2 } from 'lucide-react';
+
+/**
+ * ============================================
+ * CAROUSEL COMPONENT - Premium Professional Design
+ * ============================================
+ * 
+ * PURPOSE:
+ * - Website ka hero section - sabse pehle dikhne wala component
+ * - Professional, smooth, aur beautiful carousel with advanced features
+ * 
+ * FEATURES:
+ * - Ultra-smooth animations with parallax effects
+ * - Professional glassmorphic overlays
+ * - Thumbnail navigation
+ * - Auto-play with progress indicator
+ * - Touch/swipe gestures for mobile
+ * - Keyboard navigation support
+ * - Beautiful visual effects
+ */
 
 /**
  * Slide interface for carousel slides
@@ -34,10 +53,10 @@ interface CarouselProps {
 const defaultSlides: Slide[] = [
   {
     id: 1,
-    src: 'https://plus.unsplash.com/premium_photo-1661911309991-cc81afcce97d?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8ZWxlY3RyaWNpYW58ZW58MHx8MHx8fDA%3D',
+    src: 'https://plus.unsplash.com/premium_photo-1661911309991-cc81afcce97d?w=1920&auto=format&fit=crop&q=80',
     title: 'Premium Electrician Services',
     subtitle: 'Expert Electrical Solutions',
-    description: 'Professional electrical installation, repair, and maintenance services',
+    description: 'Professional electrical installation, repair, and maintenance services by certified technicians',
     alt: 'Professional electrician working',
   },
   {
@@ -45,7 +64,7 @@ const defaultSlides: Slide[] = [
     src: 'https://images.unsplash.com/photo-1581092921461-eab62e97a780?w=1920&q=85',
     title: 'AC Installation & Repair',
     subtitle: 'Expert AC Technician Services',
-    description: 'Complete AC installation, repair, and maintenance for all brands',
+    description: 'Complete AC installation, repair, and maintenance for all brands with warranty',
     alt: 'AC technician installing unit',
   },
   {
@@ -53,15 +72,15 @@ const defaultSlides: Slide[] = [
     src: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=1920&q=85',
     title: 'Electrical Wiring Solutions',
     subtitle: 'Safe & Professional Wiring',
-    description: 'Complete electrical wiring solutions with safety standards',
+    description: 'Complete electrical wiring solutions with safety standards and code compliance',
     alt: 'Electrical wiring work',
   },
   {
     id: 4,
-    src: 'https://plus.unsplash.com/premium_photo-1682126012378-859ca7a9f4cf?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8YWMlMjB0ZWNobmljaWFufGVufDB8fDB8fHww',
+    src: 'https://plus.unsplash.com/premium_photo-1682126012378-859ca7a9f4cf?w=1920&auto=format&fit=crop&q=80',
     title: 'AC Maintenance & Service',
     subtitle: 'Keep Your AC Running Smoothly',
-    description: 'Regular AC maintenance to keep your system efficient',
+    description: 'Regular AC maintenance to keep your system efficient and reduce energy bills',
     alt: 'AC maintenance service',
   },
   {
@@ -69,7 +88,7 @@ const defaultSlides: Slide[] = [
     src: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1920&q=85',
     title: 'Electrical Panel Upgrades',
     subtitle: 'Modern & Safe Systems',
-    description: 'Upgrade your electrical panel for better safety and capacity',
+    description: 'Upgrade your electrical panel for better safety, capacity, and energy efficiency',
     alt: 'Electrical panel upgrade',
   },
   {
@@ -77,22 +96,16 @@ const defaultSlides: Slide[] = [
     src: 'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=1920&q=85',
     title: '24/7 Emergency Service',
     subtitle: 'Available Round the Clock',
-    description: 'Emergency electrical and AC repair services 24/7 in Nanded',
+    description: 'Emergency electrical and AC repair services 24/7 in Nanded - We respond fast!',
     alt: '24/7 emergency service',
   },
 ];
 
 /**
- * Professional Carousel Component
+ * Premium Professional Carousel Component
  * 
- * Features:
- * - Fully responsive design
- * - Professional animations
- * - Transparent glassmorphic text overlays
- * - Auto-play with pause/resume
- * - Mobile swipe gestures
- * - Smooth transitions
- * - Scalable and stable architecture
+ * Ultra-smooth, professional carousel with advanced animations,
+ * parallax effects, and beautiful UI elements
  */
 export default function Carousel({
   slides = defaultSlides,
@@ -106,7 +119,10 @@ export default function Carousel({
   const [isPaused, setIsPaused] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const x = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 300, damping: 30 });
 
   /**
    * Navigate to next slide
@@ -145,10 +161,10 @@ export default function Carousel({
   }, []);
 
   /**
-   * Auto-play functionality with proper cleanup
+   * Auto-play functionality with progress tracking
    */
   useEffect(() => {
-    if (!autoPlay || isPaused || isHovered) {
+    if (!autoPlay || isPaused || isHovered || isDragging) {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
@@ -162,9 +178,9 @@ export default function Carousel({
 
     intervalRef.current = setInterval(() => {
       const elapsed = Date.now() - startTime;
-      const newProgress = (elapsed % autoPlayInterval) / autoPlayInterval;
+      const newProgress = Math.min((elapsed / autoPlayInterval) * 100, 100);
       setProgress(newProgress);
-    }, 16);
+    }, 16); // 60fps smooth progress
 
     const timeout = setTimeout(() => {
       goToNext();
@@ -176,13 +192,35 @@ export default function Carousel({
       }
       clearTimeout(timeout);
     };
-  }, [autoPlay, autoPlayInterval, isPaused, isHovered, goToNext, currentIndex]);
+  }, [autoPlay, autoPlayInterval, isPaused, isHovered, isDragging, goToNext, currentIndex]);
+
+  /**
+   * Keyboard navigation
+   */
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') goToPrevious();
+      if (e.key === 'ArrowRight') goToNext();
+      if (e.key === ' ') {
+        e.preventDefault();
+        toggleAutoPlay();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [goToNext, goToPrevious, toggleAutoPlay]);
 
   /**
    * Handle drag end for mobile swipe
    */
+  const handleDragStart = useCallback(() => {
+    setIsDragging(true);
+  }, []);
+
   const handleDragEnd = useCallback(
     (_e: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+      setIsDragging(false);
       const swipeThreshold = 50;
       const velocityThreshold = 500;
 
@@ -199,17 +237,17 @@ export default function Carousel({
           goToNext();
         }
       }
+      x.set(0);
       setProgress(0);
     },
-    [goToNext, goToPrevious]
+    [goToNext, goToPrevious, x]
   );
 
   const currentSlide = slides[currentIndex];
 
   return (
     <div
-      className={`relative w-full h-[100vh] min-h-[500px] sm:min-h-[600px] md:min-h-[700px] lg:min-h-[800px] rounded-2xl overflow-hidden shadow-2xl ${className}`}
-      style={{ height: className.includes('h-full') ? '100%' : undefined }}
+      className={`relative w-full h-[100vh] min-h-[600px] sm:min-h-[700px] md:min-h-[800px] lg:min-h-[900px] overflow-hidden ${className}`}
       onMouseEnter={() => {
         setIsHovered(true);
         setIsPaused(true);
@@ -219,42 +257,50 @@ export default function Carousel({
         if (autoPlay) setIsPaused(false);
       }}
     >
-      {/* Main Container */}
+      {/* Main Container with Parallax Effect */}
       <div className="relative w-full h-full bg-gradient-to-br from-gray-900 via-gray-800 to-black">
         <AnimatePresence initial={false} custom={direction} mode="wait">
           <motion.div
             key={currentIndex}
             custom={direction}
-            initial={{ opacity: 0, x: direction > 0 ? '100%' : '-100%' }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: direction > 0 ? '-100%' : '100%' }}
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
             transition={{
-              x: { type: 'spring', stiffness: 300, damping: 30 },
-              opacity: { duration: 0.4 },
+              opacity: { duration: 0.6 },
+              scale: { duration: 0.8, ease: [0.4, 0, 0.2, 1] },
             }}
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.7}
+            dragElastic={0.2}
+            onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
+            style={{ x: springX }}
             className="absolute inset-0 w-full h-full"
           >
-            {/* Image */}
+            {/* Background Image with Parallax */}
             {currentSlide.src.startsWith('http') ? (
-              <motion.img
-                src={currentSlide.src}
-                alt={currentSlide.alt || currentSlide.title}
-                className="w-full h-full object-cover"
-                loading={currentIndex === 0 ? 'eager' : 'lazy'}
-                initial={{ scale: 1.1 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 8, ease: 'easeOut' }}
-              />
+              <motion.div
+                className="absolute inset-0 w-full h-full"
+                animate={{
+                  scale: isHovered ? 1.05 : 1,
+                }}
+                transition={{ duration: 10, ease: 'easeOut' }}
+              >
+                <img
+                  src={currentSlide.src}
+                  alt={currentSlide.alt || currentSlide.title}
+                  className="w-full h-full object-cover"
+                  loading={currentIndex === 0 ? 'eager' : 'lazy'}
+                />
+              </motion.div>
             ) : (
               <motion.div
                 className="relative w-full h-full"
-                initial={{ scale: 1.1 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 8, ease: 'easeOut' }}
+                animate={{
+                  scale: isHovered ? 1.05 : 1,
+                }}
+                transition={{ duration: 10, ease: 'easeOut' }}
               >
                 <Image
                   src={currentSlide.src}
@@ -262,164 +308,209 @@ export default function Carousel({
                   fill
                   className="object-cover"
                   priority={currentIndex === 0}
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1920px"
+                  sizes="100vw"
                 />
               </motion.div>
             )}
 
-            {/* Gradient Overlay */}
-            {showTitle && (
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-            )}
+            {/* Multi-layer Gradient Overlay for depth */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40" />
           </motion.div>
         </AnimatePresence>
 
-        {/* Transparent Glassmorphic Content Overlay */}
+        {/* Premium Glassmorphic Content Overlay */}
         {showTitle && (
-          <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 lg:p-12 xl:p-16 z-10">
+          <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 md:p-12 lg:p-16 xl:p-20 z-10">
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.6 }}
-              className="max-w-5xl"
+              transition={{ delay: 0.4, duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
+              className="max-w-6xl mx-auto"
             >
-              {/* Glassmorphic Card */}
-              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 sm:p-6 md:p-8 border border-white/20 shadow-2xl">
-                {/* Badge */}
+              {/* Premium Glass Card */}
+              <div className="relative bg-white/10 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 md:p-10 lg:p-12 border border-white/20 shadow-2xl overflow-hidden">
+                {/* Animated Background Gradient */}
                 <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="inline-block px-3 py-1.5 mb-4 bg-primary-600/80 backdrop-blur-sm rounded-full text-xs sm:text-sm font-semibold text-white uppercase tracking-wider border border-white/30"
-                >
-                  Trusted Services
-                </motion.div>
+                  className="absolute inset-0 opacity-30"
+                  animate={{
+                    background: [
+                      'radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.3), transparent)',
+                      'radial-gradient(circle at 80% 50%, rgba(139, 92, 246, 0.3), transparent)',
+                      'radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.3), transparent)',
+                    ],
+                  }}
+                  transition={{ duration: 10, repeat: Infinity }}
+                />
 
-                {/* Title */}
-                <motion.h2
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-2 sm:mb-3 text-white leading-tight drop-shadow-lg"
-                >
-                  {currentSlide.title}
-                </motion.h2>
-
-                {/* Subtitle */}
-                {currentSlide.subtitle && (
-                  <motion.p
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 }}
-                    className="text-base sm:text-lg md:text-xl lg:text-2xl text-white/90 mb-2 sm:mb-3 font-medium"
+                <div className="relative z-10">
+                  {/* Premium Badge */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -30, scale: 0.9 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    transition={{ delay: 0.5, type: 'spring', stiffness: 200 }}
+                    className="inline-flex items-center gap-2 px-4 py-2 mb-6 bg-gradient-to-r from-primary-500/90 to-primary-600/90 backdrop-blur-md rounded-full text-sm font-bold text-white uppercase tracking-wider border border-white/30 shadow-lg"
                   >
-                    {currentSlide.subtitle}
-                  </motion.p>
-                )}
+                    <Circle className="w-2 h-2 fill-white animate-pulse" />
+                    Trusted Professional Services
+                  </motion.div>
 
-                {/* Description */}
-                {currentSlide.description && (
-                  <motion.p
-                    initial={{ opacity: 0, y: 20 }}
+                  {/* Title with gradient text */}
+                  <motion.h2
+                    initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.7 }}
-                    className="text-sm sm:text-base md:text-lg text-white/80 max-w-3xl leading-relaxed"
+                    transition={{ delay: 0.6, duration: 0.8 }}
+                    className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-3 sm:mb-4 text-white leading-tight drop-shadow-2xl"
+                    style={{
+                      background: 'linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                    }}
                   >
-                    {currentSlide.description}
-                  </motion.p>
-                )}
+                    {currentSlide.title}
+                  </motion.h2>
+
+                  {/* Subtitle */}
+                  {currentSlide.subtitle && (
+                    <motion.p
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.7, duration: 0.6 }}
+                      className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-white/95 mb-4 font-semibold drop-shadow-lg"
+                    >
+                      {currentSlide.subtitle}
+                    </motion.p>
+                  )}
+
+                  {/* Description */}
+                  {currentSlide.description && (
+                    <motion.p
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.8, duration: 0.6 }}
+                      className="text-sm sm:text-base md:text-lg lg:text-xl text-white/85 max-w-4xl leading-relaxed drop-shadow-md"
+                    >
+                      {currentSlide.description}
+                    </motion.p>
+                  )}
+                </div>
               </div>
             </motion.div>
           </div>
         )}
 
-        {/* Navigation Arrows */}
-        <button
+        {/* Premium Navigation Arrows */}
+        <motion.button
           onClick={goToPrevious}
-          className="absolute left-3 sm:left-4 md:left-6 lg:left-8 top-1/2 -translate-y-1/2 z-30 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white p-2.5 sm:p-3 md:p-4 rounded-full shadow-xl border border-white/20 transition-all duration-300 hover:scale-110 hover:shadow-2xl active:scale-95 focus:outline-none focus:ring-4 focus:ring-white/30 group"
+          whileHover={{ scale: 1.1, x: -5 }}
+          whileTap={{ scale: 0.95 }}
+          className="absolute left-4 md:left-6 lg:left-8 top-1/2 -translate-y-1/2 z-30 group"
           aria-label="Previous slide"
         >
-          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 transition-transform group-hover:-translate-x-0.5" />
-        </button>
+          <div className="bg-white/15 hover:bg-white/25 backdrop-blur-xl text-white p-3 md:p-4 lg:p-5 rounded-full shadow-2xl border border-white/30 transition-all duration-300 group-hover:shadow-primary-500/50">
+            <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 transition-transform group-hover:-translate-x-1" />
+          </div>
+        </motion.button>
 
-        <button
+        <motion.button
           onClick={goToNext}
-          className="absolute right-3 sm:right-4 md:right-6 lg:right-8 top-1/2 -translate-y-1/2 z-30 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white p-2.5 sm:p-3 md:p-4 rounded-full shadow-xl border border-white/20 transition-all duration-300 hover:scale-110 hover:shadow-2xl active:scale-95 focus:outline-none focus:ring-4 focus:ring-white/30 group"
+          whileHover={{ scale: 1.1, x: 5 }}
+          whileTap={{ scale: 0.95 }}
+          className="absolute right-4 md:right-6 lg:right-8 top-1/2 -translate-y-1/2 z-30 group"
           aria-label="Next slide"
         >
-          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 transition-transform group-hover:translate-x-0.5" />
-        </button>
+          <div className="bg-white/15 hover:bg-white/25 backdrop-blur-xl text-white p-3 md:p-4 lg:p-5 rounded-full shadow-2xl border border-white/30 transition-all duration-300 group-hover:shadow-primary-500/50">
+            <ChevronRight className="w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 transition-transform group-hover:translate-x-1" />
+          </div>
+        </motion.button>
 
         {/* Auto-play Control */}
         {autoPlay && (
-          <button
+          <motion.button
             onClick={toggleAutoPlay}
-            className="absolute top-3 sm:top-4 md:top-6 right-3 sm:right-4 md:right-6 z-30 bg-black/40 hover:bg-black/60 backdrop-blur-md text-white p-2 sm:p-2.5 rounded-full shadow-lg border border-white/20 transition-all duration-300 hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="absolute top-4 md:top-6 right-4 md:right-6 z-30 bg-black/50 hover:bg-black/70 backdrop-blur-xl text-white p-3 rounded-full shadow-xl border border-white/20 transition-all duration-300"
             aria-label={isPaused ? 'Play carousel' : 'Pause carousel'}
           >
             {isPaused ? (
-              <Play className="w-4 h-4 sm:w-5 sm:h-5" />
+              <Play className="w-5 h-5 md:w-6 md:h-6" />
             ) : (
-              <Pause className="w-4 h-4 sm:w-5 sm:h-5" />
+              <Pause className="w-5 h-5 md:w-6 md:h-6" />
             )}
-          </button>
+          </motion.button>
         )}
 
-        {/* Slide Counter */}
-        <div className="absolute top-3 sm:top-4 md:top-6 left-3 sm:left-4 md:left-6 z-30 bg-black/40 backdrop-blur-md text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full shadow-lg border border-white/20 text-xs sm:text-sm font-semibold">
-          {currentIndex + 1} / {slides.length}
-        </div>
+        {/* Premium Slide Counter */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="absolute top-4 md:top-6 left-4 md:left-6 z-30 bg-black/50 backdrop-blur-xl text-white px-4 py-2 rounded-full shadow-xl border border-white/20 text-sm md:text-base font-bold"
+        >
+          <span className="text-primary-300">{currentIndex + 1}</span>
+          <span className="text-white/60 mx-2">/</span>
+          <span className="text-white/80">{slides.length}</span>
+        </motion.div>
 
-        {/* Indicator Dots */}
-        <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 lg:bottom-10 left-1/2 -translate-x-1/2 z-30 flex gap-2 sm:gap-2.5 md:gap-3 flex-wrap justify-center max-w-full px-4">
-          {slides.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className="focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-transparent rounded-full transition-all duration-300 group"
-              aria-label={`Go to slide ${index + 1}`}
-            >
-              <motion.div
-                className="relative h-2 sm:h-2.5 md:h-3 rounded-full overflow-hidden"
-                initial={false}
-                animate={{
-                  width: index === currentIndex ? 40 : 8,
-                  backgroundColor:
-                    index === currentIndex
-                      ? 'rgba(255, 255, 255, 0.9)'
-                      : 'rgba(255, 255, 255, 0.3)',
-                }}
-                transition={{ duration: 0.3 }}
-                whileHover={{
-                  scale: 1.3,
-                  backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                }}
+        {/* Premium Indicator Dots with Thumbnails */}
+        <div className="absolute bottom-6 md:bottom-8 lg:bottom-12 left-1/2 -translate-x-1/2 z-30">
+          <div className="flex items-center gap-2 sm:gap-3 md:gap-4 max-w-full px-4 overflow-x-auto scrollbar-hide">
+            {slides.map((slide, index) => (
+              <motion.button
+                key={slide.id}
+                onClick={() => goToSlide(index)}
+                whileHover={{ scale: 1.2, y: -5 }}
                 whileTap={{ scale: 0.9 }}
+                className="focus:outline-none transition-all duration-300 group relative"
+                aria-label={`Go to slide ${index + 1}`}
               >
+                {/* Thumbnail */}
+                <div className="relative w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-lg overflow-hidden border-2 transition-all duration-300"
+                  style={{
+                    borderColor: index === currentIndex ? 'rgba(99, 102, 241, 0.8)' : 'rgba(255, 255, 255, 0.3)',
+                    boxShadow: index === currentIndex ? '0 0 20px rgba(99, 102, 241, 0.6)' : 'none',
+                  }}
+                >
+                  <Image
+                    src={slide.src}
+                    alt={slide.title}
+                    fill
+                    className="object-cover"
+                    sizes="64px"
+                  />
+                  <div className={`absolute inset-0 transition-all duration-300 ${
+                    index === currentIndex ? 'bg-transparent' : 'bg-black/40'
+                  }`} />
+                </div>
+
+                {/* Active Indicator */}
                 {index === currentIndex && (
                   <motion.div
-                    className="absolute inset-0 bg-white rounded-full"
-                    layoutId="activeDot"
+                    layoutId="activeIndicator"
+                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1/2 h-1 bg-primary-400 rounded-full"
                     transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                   />
                 )}
-              </motion.div>
-            </button>
-          ))}
+              </motion.button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Progress Bar */}
-      {autoPlay && !isPaused && !isHovered && (
-        <div className="absolute bottom-0 left-0 right-0 h-1 sm:h-1.5 bg-black/30 z-30 overflow-hidden">
+      {/* Premium Progress Bar */}
+      {autoPlay && !isPaused && !isHovered && !isDragging && (
+        <div className="absolute bottom-0 left-0 right-0 h-1 md:h-1.5 bg-black/40 z-30 overflow-hidden">
           <motion.div
-            className="h-full bg-gradient-to-r from-primary-400 via-primary-500 to-primary-400"
-            animate={{ width: `${progress * 100}%` }}
+            className="h-full bg-gradient-to-r from-primary-400 via-primary-500 to-primary-600 shadow-lg"
+            animate={{ width: `${progress}%` }}
             transition={{ duration: 0.1, ease: 'linear' }}
+            style={{
+              boxShadow: '0 0 20px rgba(99, 102, 241, 0.6)',
+            }}
           />
         </div>
       )}
     </div>
   );
 }
-

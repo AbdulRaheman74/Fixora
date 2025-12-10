@@ -4,6 +4,7 @@ const nextConfig = {
   images: {
     domains: [
       'images.unsplash.com',
+      'plus.unsplash.com', // Unsplash premium photos
       'media.istockphoto.com',
       'via.placeholder.com',
     ],
@@ -12,6 +13,10 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'plus.unsplash.com', // Unsplash premium photos
       },
       {
         protocol: 'https',
@@ -24,6 +29,10 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: '**.istockphoto.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.unsplash.com', // All unsplash subdomains
       },
     ],
   },

@@ -17,19 +17,86 @@ export default function ContactPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
+  /**
+   * ============================================
+   * HANDLE FORM SUBMIT - Contact Form Submit Handler
+   * ============================================
+   * 
+   * PURPOSE:
+   * - Jab user form submit kare, yeh function API ko call karta hai
+   * - API message ko database mein save karega aur admin ko email bhejega
+   * 
+   * HOW IT WORKS:
+   * 1. Form submit event ko prevent karo (page reload nahi hoga)
+   * 2. Loading state true karo (button disabled ho jayega)
+   * 3. API endpoint ko POST request bhejo (/api/contact)
+   * 4. Response check karo - success ya error
+   * 5. Success ho to success message dikhao aur form clear karo
+   * 6. Error ho to error message dikhao
+   */
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault(); // Page reload nahi hoga
+    
+    console.log('📝 Form submit started...', formData); // Debug log
+    
+    // Loading state start karo (button disabled ho jayega)
     setIsSubmitting(true);
+    setErrorMessage(''); // Pehle se koi error hai to clear karo
     
-    // TODO: Replace with actual API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    setFormData({ name: '', email: '', phone: '', message: '' });
-    
-    setTimeout(() => setIsSubmitted(false), 5000);
+    try {
+      // STEP 1: Validation check (extra safety)
+      if (!formData.name || !formData.email || !formData.phone || !formData.message) {
+        setErrorMessage('Please fill all fields');
+        setIsSubmitting(false);
+        return;
+      }
+
+      console.log('📤 Sending request to /api/contact...', formData); // Debug log
+      
+      // STEP 2: API endpoint ko POST request bhejo
+      // fetch() function browser ka built-in function hai API calls ke liye
+      const response = await fetch('/api/contact', {
+        method: 'POST', // POST request bhej rahe hain
+        headers: {
+          'Content-Type': 'application/json', // JSON data bhej rahe hain
+        },
+        body: JSON.stringify(formData), // Form data ko JSON format mein convert karke bhejo
+      });
+
+      console.log('📥 Response received:', response.status, response.statusText); // Debug log
+
+      // STEP 3: Response ko JSON format mein convert karo
+      const data = await response.json();
+      console.log('📦 Response data:', data); // Debug log
+
+      // STEP 4: Check karo response success hai ya error
+      if (data.success) {
+        // Success case - Message successfully submit ho gaya
+        console.log('✅ Message sent successfully!'); // Debug log
+        setIsSubmitted(true); // Success message dikhane ke liye
+        setFormData({ name: '', email: '', phone: '', message: '' }); // Form clear karo
+        
+        // 5 seconds baad success message hide ho jayega
+        setTimeout(() => {
+          setIsSubmitted(false);
+        }, 5000);
+      } else {
+        // Error case - API se error aaya hai
+        console.error('❌ API Error:', data.error); // Debug log
+        setErrorMessage(data.error || 'Failed to send message. Please try again.');
+      }
+    } catch (error: any) {
+      // Network error ya koi aur error (try-catch se catch hoga)
+      console.error('❌ Contact form error:', error); // Debug log
+      setErrorMessage('Network error. Please check your connection and try again.');
+    } finally {
+      // Loading state end karo (button enabled ho jayega)
+      // finally block hamesha run hoga, success ya error dono case mein
+      console.log('🏁 Form submit finished'); // Debug log
+      setIsSubmitting(false);
+    }
   };
 
   const whatsappMessage = `Hello! I need help with: ${formData.message || 'General inquiry'}`;
@@ -70,15 +137,15 @@ export default function ContactPage() {
                     <Phone className="w-8 h-8 text-primary-600 mb-4" />
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">Phone</h3>
                     <a href="tel:+917448058032" className="text-gray-600 hover:text-primary-600">
-                      +91 98765 43210
+                      +91 7448058032
                     </a>
                   </div>
 
                   <div className="bg-white p-6 rounded-xl shadow-md">
                     <Mail className="w-8 h-8 text-primary-600 mb-4" />
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">Email</h3>
-                    <a href="mailto:info@servicepro.com" className="text-gray-600 hover:text-primary-600">
-                      info@servicepro.com
+                    <a href="mailto:abraheman.744@gmail.com" className="text-gray-600 hover:text-primary-600">
+                    abraheman.744@gmail.com
                     </a>
                   </div>
 
@@ -113,13 +180,25 @@ export default function ContactPage() {
                 >
                   <h2 className="text-3xl font-bold text-gray-900 mb-6">Send us a Message</h2>
 
+                  {/* Success Message - Jab message successfully submit ho jaye */}
                   {isSubmitted && (
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700"
                     >
-                      Thank you! Your message has been sent successfully.
+                      ✅ Thank you! Your message has been sent successfully. We will contact you soon.
+                    </motion.div>
+                  )}
+
+                  {/* Error Message - Agar koi error aaye */}
+                  {errorMessage && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700"
+                    >
+                      ❌ {errorMessage}
                     </motion.div>
                   )}
 
@@ -183,15 +262,27 @@ export default function ContactPage() {
                     </div>
 
                     <div className="flex gap-4">
-                      <Button
+                      {/* Submit Button - Form submit karne ke liye */}
+                      <button
                         type="submit"
-                        isLoading={isSubmitting}
-                        size="lg"
-                        className="flex-1"
+                        disabled={isSubmitting}
+                        className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <Send className="w-5 h-5 mr-2" />
-                        Send Message
-                      </Button>
+                        {isSubmitting ? (
+                          <>
+                            <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-5 h-5" />
+                            Send Message
+                          </>
+                        )}
+                      </button>
                       <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="flex-1">
                         <Button type="button" variant="outline" size="lg" className="w-full">
                           <MessageCircle className="w-5 h-5 mr-2" />

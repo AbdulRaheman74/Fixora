@@ -14,10 +14,7 @@ import { useAuth } from '@/context/AuthContext';
 import testimonialsData from '@/data/testimonials.json';
 import { Service, Testimonial } from '@/types';
 import { getWhatsAppLink } from '@/lib/utils';
-import apiClient from '@/lib/api/axios';
-
-// IMPORTANT: Force dynamic rendering (no static generation)
-export const dynamic = 'force-dynamic';
+import apiClient from '@/lib/api/axios';  
 
 export default function HomePage() {
   const { isLoading: authLoading } = useAuth();

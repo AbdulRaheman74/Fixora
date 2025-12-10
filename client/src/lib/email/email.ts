@@ -220,3 +220,168 @@ export async function sendBookingStatusUpdateEmail({
   }
 }
 
+/**
+ * ============================================
+ * SEND CONTACT FORM EMAIL TO ADMIN
+ * ============================================
+ * 
+ * PURPOSE:
+ * - Jab koi user contact form submit kare, admin ko email jayega
+ * - Admin ko instant notification milega ki naya message aaya hai
+ * 
+ * HOW IT WORKS:
+ * 1. User ka naam, email, phone, message email mein include hota hai
+ * 2. Admin ke email address par email jata hai
+ * 3. Email fail ho to bhi form submit success rahega (non-blocking)
+ */
+export async function sendContactFormEmail({
+  userName,
+  userEmail,
+  userPhone,
+  message,
+}: {
+  userName: string;
+  userEmail: string;
+  userPhone: string;
+  message: string;
+}) {
+  try {
+    // STEP 1: Admin ka email address define karo
+    // Pehle ADMIN_EMAIL check karo, agar nahi hai to EMAIL_USER use karo
+    // Ya phir default admin@fixora.com use karo
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER || 'admin@fixora.com';
+
+    // STEP 2: Email ka content banayein
+    const mailOptions = {
+      from: process.env.EMAIL_USER, // Sender (aapka email)
+      to: adminEmail, // Receiver (admin ka email)
+      subject: `📧 New Contact Form Message from ${userName} - Fixora`, // Email ka subject line
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { 
+              font-family: Arial, sans-serif; 
+              line-height: 1.6; 
+              color: #333; 
+              margin: 0;
+              padding: 0;
+            }
+            .container { 
+              max-width: 600px; 
+              margin: 0 auto; 
+              padding: 20px; 
+            }
+            .header { 
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+              color: white; 
+              padding: 30px; 
+              text-align: center; 
+              border-radius: 10px 10px 0 0; 
+            }
+            .content { 
+              background: #f9f9f9; 
+              padding: 30px; 
+              border-radius: 0 0 10px 10px; 
+            }
+            .detail-row { 
+              margin: 15px 0; 
+              padding: 15px; 
+              background: white; 
+              border-left: 4px solid #667eea; 
+              border-radius: 5px; 
+            }
+            .label { 
+              font-weight: bold; 
+              color: #667eea; 
+              display: block; 
+              margin-bottom: 5px; 
+            }
+            .message-box { 
+              background: white; 
+              padding: 20px; 
+              border-radius: 5px; 
+              margin: 20px 0; 
+              border: 2px solid #e0e0e0; 
+            }
+            .actions {
+              margin-top: 30px;
+              padding: 20px;
+              background: white;
+              border-radius: 5px;
+            }
+            .button {
+              display: inline-block;
+              padding: 10px 20px;
+              background: #667eea;
+              color: white;
+              text-decoration: none;
+              border-radius: 5px;
+              margin: 5px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <!-- Email Header -->
+            <div class="header">
+              <h1>📧 New Contact Form Message</h1>
+              <p>You have received a new message from your website</p>
+            </div>
+            
+            <!-- Email Content -->
+            <div class="content">
+              <p>Hello Admin,</p>
+              <p>A new message has been submitted through the contact form on your website.</p>
+              
+              <!-- User Details -->
+              <div class="detail-row">
+                <span class="label">Name:</span>
+                ${userName}
+              </div>
+              
+              <div class="detail-row">
+                <span class="label">Email:</span>
+                <a href="mailto:${userEmail}">${userEmail}</a>
+              </div>
+              
+              <div class="detail-row">
+                <span class="label">Phone:</span>
+                <a href="tel:${userPhone}">${userPhone}</a>
+              </div>
+              
+              <!-- User Message -->
+              <div class="message-box">
+                <span class="label">Message:</span>
+                <p>${message.replace(/\n/g, '<br>')}</p>
+              </div>
+              
+              <!-- Quick Actions -->
+              <div class="actions">
+                <p><strong>Quick Actions:</strong></p>
+                <a href="mailto:${userEmail}" class="button">📧 Reply via Email</a>
+                <a href="tel:${userPhone}" class="button">📞 Call ${userPhone}</a>
+              </div>
+              
+              <p style="margin-top: 30px; color: #666; font-size: 12px;">
+                This email was sent automatically from your Fixora website contact form.
+              </p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    };
+
+    // STEP 3: Email send karo
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ Contact form email sent to admin:', info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error: any) {
+    // STEP 4: Agar error aaye to log karo, but fail nahi karo
+    // Kyunki email fail ho to bhi message database mein save ho jayega
+    console.error('❌ Contact email sending error:', error);
+    return { success: false, error: error.message };
+  }
+}
